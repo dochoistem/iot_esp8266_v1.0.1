@@ -1,0 +1,28 @@
+{
+    "name": "DCT-IoT firmware 1.7 - 1.0.1",
+    "version": "1.0.xx",
+    "description": "IoT library by Do Choi STEM - use for firmware 1.7",
+    "license": "MIT",
+    "dependencies": {
+        "core": "*",
+	"microphone": "*"
+    },
+    "files": [
+        "README.md",
+        "ESP8266.ts",
+        "main.py",
+        "main.ts"
+    ],
+    "testFiles": [
+        "tests.ts"
+    ],
+    "public": true,
+    "targetVersions": {
+        "target": "6.0.25",
+        "targetId": "microbit"
+    },
+    "supportedTargets": [
+        "microbit"
+    ],
+    "preferredEditor": "tsprj"
+}
