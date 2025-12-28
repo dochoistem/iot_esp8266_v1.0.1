@@ -1,0 +1,111 @@
+DoChoiSTEM.MqttEvent("dct/led", function (message) {
+    if (message == "t") {
+        Turn_on_the_LED()
+    }
+    if (message == "f") {
+        Turn_off_the_LED()
+    }
+})
+input.onButtonPressed(Button.A, function () {
+    if (flag_led_status == false) {
+        Turn_on_the_LED()
+        DoChoiSTEM.mqtt_publish("dct/led", "t", DoChoiSTEM.QosList.Qos2)
+    } else {
+        Turn_off_the_LED()
+        DoChoiSTEM.mqtt_publish("dct/led", "f", DoChoiSTEM.QosList.Qos2)
+    }
+})
+function Turn_off_the_LED () {
+    pins.digitalWritePin(DigitalPin.P1, 0)
+    flag_led_status = false
+}
+input.onButtonPressed(Button.B, function () {
+    if (DoChoiSTEM.wifiState(true)) {
+        DoChoiSTEM.connectThingSpeak()
+        if (DoChoiSTEM.thingSpeakState(true)) {
+            basic.showIcon(IconNames.Happy)
+            basic.pause(500)
+            data += 10
+            DoChoiSTEM.setData(
+            "CX4VJZS1XCIOZZ8J",
+            data
+            )
+            DoChoiSTEM.uploadData()
+            basic.pause(500)
+            basic.clearScreen()
+        } else {
+            basic.showIcon(IconNames.Sad)
+            basic.pause(500)
+            basic.clearScreen()
+        }
+    }
+})
+function Turn_on_the_LED () {
+    pins.digitalWritePin(DigitalPin.P1, 1)
+    flag_led_status = true
+}
+input.onLogoEvent(TouchButtonEvent.Pressed, function () {
+    DoChoiSTEM.updateInternetTime()
+    if (DoChoiSTEM.isInternetTimeUpdated()) {
+        basic.showNumber(DoChoiSTEM.getDay())
+        basic.showNumber(DoChoiSTEM.getMonth())
+        basic.showNumber(DoChoiSTEM.getYear())
+        basic.showNumber(DoChoiSTEM.getWeekday())
+        basic.showNumber(DoChoiSTEM.getHour())
+        basic.showNumber(DoChoiSTEM.getMinute())
+    }
+})
+let flag_led_status = false
+let data = 0
+data = 0
+flag_led_status = false
+DoChoiSTEM.initWIFI(SerialPin.P8, SerialPin.P2, BaudRate.BaudRate115200)
+basic.showString(DoChoiSTEM.getFirmware())
+let flag_state = 1
+basic.showNumber(flag_state)
+basic.pause(500)
+while (DoChoiSTEM.wifiState(false)) {
+    basic.showIcon(IconNames.Chessboard)
+    DoChoiSTEM.connectWifi("DoChoiSTEM2", "dochoistem.com")
+    basic.clearScreen()
+    basic.pause(200)
+}
+flag_state = 2
+while (flag_state <= 6) {
+    basic.showNumber(flag_state)
+    basic.pause(500)
+    if (flag_state == 2) {
+        DoChoiSTEM.mqtt_user_config(
+        DoChoiSTEM.SchemeList.TCP,
+        "microbit",
+        "",
+        "",
+        ""
+        )
+        if (DoChoiSTEM.getATCommandreply() == "OK") {
+            flag_state = 3
+        }
+    } else if (flag_state == 3) {
+        DoChoiSTEM.mqtt_connect("broker.hivemq.com", 1883, 0)
+        if (DoChoiSTEM.getATCommandreply() == "OK") {
+            flag_state = 4
+        }
+    } else if (flag_state == 4) {
+        DoChoiSTEM.mqtt_subscribe("dct/led", DoChoiSTEM.QosList.Qos2)
+        if (DoChoiSTEM.getATCommandreply() == "OK") {
+            flag_state = 5
+        }
+    } else if (flag_state == 5) {
+        DoChoiSTEM.mqtt_publish("dct/led", convertToText(flag_led_status).substr(0, 1), DoChoiSTEM.QosList.Qos2)
+        flag_state = 6
+    } else if (flag_state == 6) {
+        DoChoiSTEM.initInternetTime(7)
+        if (DoChoiSTEM.isInternetTimeInitialized()) {
+            flag_state = 7
+            basic.showNumber(flag_state)
+            basic.pause(500)
+            serial.setRxBufferSize(32)
+        }
+    }
+}
+basic.clearScreen()
